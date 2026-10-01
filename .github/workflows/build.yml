@@ -7,7 +7,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - run: unzip -q *.zip
+      - name: Extrair projeto
+        run: |
+          unzip -q -o ./*.zip -d src
+          find src -name settings.gradle.kts
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
@@ -15,8 +18,14 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: 8.7
-      - run: cd DiaSemana && gradle assembleDebug
+      - name: Compilar
+        run: |
+          DIR=$(dirname "$(find src -name settings.gradle.kts | head -n 1)")
+          cd "$DIR"
+          gradle assembleDebug
+      - name: Separar APK
+        run: cp "$(find src -name app-debug.apk | head -n 1)" app-debug.apk
       - uses: actions/upload-artifact@v4
         with:
           name: DiaSemana-apk
-          path: DiaSemana/app/build/outputs/apk/debug/app-debug.apk
+          path: app-debug.apk
